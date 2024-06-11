@@ -1,25 +1,10 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::{convert::Infallible, time::Duration};
+use std::time::Duration;
 
-use anyhow::{anyhow, Error};
-use axum::http::{HeaderMap, Method, StatusCode};
 use axum::routing::post;
-use axum::Json;
-use axum::{
-    body::{Body, Bytes},
-    extract::{Query, State},
-    http::{HeaderName, HeaderValue},
-    response::{IntoResponse, Response},
-    routing::get,
-    Router,
-};
-use reqwest::Client;
-use serde::{de, Deserialize, Deserializer, Serialize};
-use std::{fmt, str::FromStr};
+use axum::{body::Bytes, routing::get, Router};
 use tokio::sync::Mutex;
-use tokio_stream::StreamExt;
-use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
 use tracing::Span;
@@ -33,7 +18,6 @@ mod responses;
 
 use balance::balance;
 use database::MockDB;
-use error_handling::AppError;
 use event::{event, reset};
 
 #[tokio::main]

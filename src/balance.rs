@@ -1,9 +1,7 @@
-use std::{fmt, str::FromStr};
-
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use serde::{de, Deserialize, Deserializer};
+use serde::Deserialize;
 
 use crate::database::MockDB;
 use crate::error_handling::{empty_string_as_none, AppError, CustomResponse};

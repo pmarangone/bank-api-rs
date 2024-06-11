@@ -6,7 +6,6 @@ use axum::{
 
 use std::{fmt, str::FromStr};
 
-use axum::extract::{Query, State};
 use serde::{de, Deserialize, Deserializer, Serialize};
 
 pub struct AppError(anyhow::Error);

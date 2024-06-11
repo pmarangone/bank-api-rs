@@ -1,20 +1,12 @@
-use anyhow::{anyhow, Error};
-use std::{fmt, str::FromStr};
+use anyhow::anyhow;
 
-use axum::{
-    extract::{Query, State},
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
-use serde::{de, Deserialize, Deserializer, Serialize};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use serde::Deserialize;
 
 use crate::{
     database::MockDB,
     error_handling::{empty_string_as_none, AppError, CustomResponse},
-    responses::{
-        DepositResponse, OKResponse, Origin, Response, TransferResponse, WithdrawResponse,
-    },
+    responses::{DepositResponse, Origin, Response, TransferResponse, WithdrawResponse},
 };
 
 #[derive(Debug, Deserialize)]
@@ -40,13 +32,12 @@ pub async fn event(
     let origin = payload.origin.unwrap_or_default();
     let destination = payload.destination.unwrap_or_default();
     let amount = payload.amount.unwrap_or_default();
-    // format!("{payload:?}")
     if let Some(t) = _type {
         match t.as_str() {
             "deposit" => {
                 let balance = state.deposit(destination.as_str(), amount).await;
                 let deposit = Origin {
-                    id: "100".to_string(),
+                    id: origin,
                     balance,
                 };
 
@@ -63,7 +54,7 @@ pub async fn event(
                 let result = state.withdraw(origin.as_str(), amount).await;
                 if let Ok(balance) = result {
                     let origin = Origin {
-                        id: "100".to_string(),
+                        id: origin,
                         balance,
                     };
 
@@ -85,7 +76,7 @@ pub async fn event(
                     .transfer(origin.as_str(), destination.as_str(), amount)
                     .await;
 
-                if let Ok(r) = result {
+                if result.is_ok() {
                     let origin_balance = state.balance(origin.as_str()).await.unwrap();
                     let origin = Origin {
                         id: origin.to_string(),
