@@ -3,24 +3,33 @@ use std::{fmt, str::FromStr};
 
 use axum::{
     extract::{Query, State},
+    http::StatusCode,
     response::IntoResponse,
     Json,
 };
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize};
 
 use crate::{
     database::MockDB,
-    error_handling::{empty_string_as_none, AppError},
-    responses::{DepositResponse, Origin, ResponseBody, TransferResponse, WithdrawResponse},
+    error_handling::{empty_string_as_none, AppError, CustomResponse},
+    responses::{
+        DepositResponse, OKResponse, Origin, Response, TransferResponse, WithdrawResponse,
+    },
 };
 
 #[derive(Debug, Deserialize)]
-struct EventParams {
+pub struct EventParams {
     #[serde(default, deserialize_with = "empty_string_as_none")]
     r#type: Option<String>,
     origin: Option<String>,
     destination: Option<String>,
     amount: Option<f32>,
+}
+
+pub async fn reset(State(mut state): State<MockDB>) -> impl IntoResponse {
+    state.reset().await;
+
+    (StatusCode::OK, "OK")
 }
 
 pub async fn event(
@@ -45,8 +54,10 @@ pub async fn event(
                     destination: deposit,
                 };
 
-                let data = serde_json::to_string(&response)?;
-                return Ok(Json(data));
+                return Ok(CustomResponse {
+                    status: StatusCode::CREATED,
+                    body: Response::Deposit(response),
+                });
             }
             "withdraw" => {
                 let result = state.withdraw(origin.as_str(), amount).await;
@@ -58,9 +69,15 @@ pub async fn event(
 
                     let response = WithdrawResponse { origin };
 
-                    let data = serde_json::to_string(&response)?;
-
-                    return Ok(Json(data));
+                    return Ok(CustomResponse {
+                        status: StatusCode::CREATED,
+                        body: Response::Withdraw(response),
+                    });
+                } else {
+                    return Ok(CustomResponse {
+                        status: StatusCode::NOT_FOUND,
+                        body: Response::Default(0f32),
+                    });
                 }
             }
             "transfer" => {
@@ -85,13 +102,18 @@ pub async fn event(
                         destination,
                     };
 
-                    let data = serde_json::to_string(&response)?;
-                    return Ok(Json(data));
+                    return Ok(CustomResponse {
+                        status: StatusCode::CREATED,
+                        body: Response::Transfer(response),
+                    });
                 }
             }
             _ => return Err(AppError::from(anyhow!(""))),
         }
     }
 
-    Ok(Json("0".to_string()))
+    Ok(CustomResponse {
+        status: StatusCode::NOT_FOUND,
+        body: Response::Default(0f32),
+    })
 }

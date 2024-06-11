@@ -1,12 +1,13 @@
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
+    Json,
 };
 
 use std::{fmt, str::FromStr};
 
 use axum::extract::{Query, State};
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize};
 
 pub struct AppError(anyhow::Error);
 
@@ -17,6 +18,21 @@ impl IntoResponse for AppError {
             format!("Something went wrong: {}", self.0),
         )
             .into_response()
+    }
+}
+
+pub struct CustomResponse<T> {
+    pub status: StatusCode,
+    pub body: T,
+}
+
+impl<T> IntoResponse for CustomResponse<T>
+where
+    T: Serialize,
+{
+    fn into_response(self) -> axum::response::Response {
+        let body = Json(self.body);
+        (self.status, body).into_response()
     }
 }
 

@@ -7,12 +7,13 @@ pub struct Origin {
 }
 
 #[derive(Serialize)]
-pub struct WithdrawResponse {
-    pub origin: Origin,
-}
-#[derive(Serialize)]
 pub struct DepositResponse {
     pub destination: Origin,
+}
+
+#[derive(Serialize)]
+pub struct WithdrawResponse {
+    pub origin: Origin,
 }
 
 #[derive(Serialize)]
@@ -22,6 +23,16 @@ pub struct TransferResponse {
 }
 
 #[derive(Serialize)]
-pub struct ResponseBody {
+pub struct OKResponse {
     pub message: String,
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum Response {
+    Deposit(DepositResponse),
+    Withdraw(WithdrawResponse),
+    Transfer(TransferResponse),
+    OK(OKResponse),
+    Default(f32),
 }

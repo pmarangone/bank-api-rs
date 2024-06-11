@@ -34,7 +34,7 @@ mod responses;
 use balance::balance;
 use database::MockDB;
 use error_handling::AppError;
-use event::event;
+use event::{event, reset};
 
 #[tokio::main]
 async fn main() {
@@ -65,8 +65,4 @@ async fn main() {
         .unwrap();
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn reset() -> String {
-    "OK".to_string()
 }
