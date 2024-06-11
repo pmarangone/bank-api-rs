@@ -33,6 +33,5 @@ pub enum Response {
     Deposit(DepositResponse),
     Withdraw(WithdrawResponse),
     Transfer(TransferResponse),
-    OK(OKResponse),
     Default(f32),
 }

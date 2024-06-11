@@ -40,7 +40,7 @@ impl MockDB {
         println!("{:#?}", self.balance(origin).await);
         match self.balance(origin).await {
             Ok(x) if x < amount => Err(anyhow!("amount is greater than current balance")),
-            Ok(x) => {
+            Ok(_) => {
                 self.balances
                     .lock()
                     .await
